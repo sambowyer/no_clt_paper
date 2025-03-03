@@ -71,7 +71,7 @@ if __name__ == "__main__":
     import argparse
     import time 
     parser = argparse.ArgumentParser(description='Run subtask error-bar experiments with specified hyperparameters.')
-    parser.add_argument('--experiment_name', type=str, default='basic', help='Experiment setup to use')
+    parser.add_argument('--experiment_name', type=str, default='basic_small', help='Experiment setup to use')
     parser.add_argument('--seed', type=int, default=0, help='Random seed to use')
     parser.add_argument('--custom_name', type=str, default=None, help='Custom name to save results as')
     parser.add_argument('--num_repeats', type=int, default=200, help='Number of repeats to run')
@@ -83,6 +83,10 @@ if __name__ == "__main__":
     parser.add_argument('--fix_theta', type=float, default=None, help='Fix the value of theta')
     args = parser.parse_args()
 
+    import os 
+    os.makedirs('results', exist_ok=True)
+    os.makedirs('plots/pdfs', exist_ok=True)
+    os.makedirs('plots/pngs', exist_ok=True)
 
     print(f"\nStart time: {time.asctime()}")
     print(args)

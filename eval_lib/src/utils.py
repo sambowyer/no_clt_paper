@@ -64,7 +64,7 @@ COLOURS_BASIC = {
     'bayes_paired': 'blue',
     'bayes_paired_per_question': 'cyan',
     'bayes_paired_dirichlet': 'purple',
-    'bayes_unpaired': 'green'#'blue'
+    'bayes_unpaired': 'blue'
 }
 
 COLOURS = COLOURS_BASIC

@@ -48,7 +48,9 @@ def fixed_theta_plot(results_collection, plot_filename=None, folder='plots', plo
 
         all_methods = ['IS_subtask', 'bayes', 'clt_subtask', 'freq', 'wils', 'clop', 'boot_subtask', 'boot']
         unclustered_methods = ['bayes', 'freq', 'wils', 'clop', 'boot']
-        paired_methods = ['bayes_paired', 'clt_paired', 'freq', 'boot']
+        paired_methods = ['bayes_paired', 'bayes_unpaired', 'clt_paired', 'freq', 'boot']
+
+        dashed_methods = unclustered_methods + ['bayes_unpaired']
 
         if plot_type == 'subtask':
             n_per_task = results['n_per_task'] if 'n_per_task' in results else results['N_t']
@@ -67,8 +69,8 @@ def fixed_theta_plot(results_collection, plot_filename=None, folder='plots', plo
                         coverages[method][i],
                         label=METHOD_NAMES[method],
                         color=COLOURS[method], 
-                        linestyle=':' if method in unclustered_methods and plot_type in ('subtask', 'paired') else '-',
-                        alpha=0.5 if method in unclustered_methods and plot_type in ('subtask', 'paired') else 1
+                        linestyle=':' if method in dashed_methods and plot_type in ('subtask', 'paired') else '-',
+                        alpha=0.5 if method in dashed_methods and plot_type in ('subtask', 'paired') else 1
                 )
 
             # plot y=1-alpha
@@ -136,29 +138,34 @@ if __name__ == "__main__":
     ### FULL EXPERIMENTS
 
     basic_exps = {
-        'exp4-1_fixed_theta': {r'$\theta = 0.5$':  load_results_dict("basic_small_FIXED_50_BIGREPEATS"),
-                                r'$\theta = 0.8$':  load_results_dict("basic_small_FIXED_80_BIGREPEATS"),
-                                r'$\theta = 0.95$': load_results_dict("basic_small_FIXED_95_BIGREPEATS"),}
+        'exp4-1_fixed_theta': {r'$\theta = 0.5$':  load_results_dict("basic_small_FIXED_50"),#_BIGREPEATS"),
+                                r'$\theta = 0.8$':  load_results_dict("basic_small_FIXED_80"),#_BIGREPEATS"),
+                                r'$\theta = 0.95$': load_results_dict("basic_small_FIXED_95"),#_BIGREPEATS"),}
+        }
     }
 
     subtask_exps = {
-        'exp4-2_fixed_theta': {r'$\theta = 0.5$':  load_results_dict("subtask_small_FIXED_50_BIGREPEATS"),
-                                r'$\theta = 0.8$':  load_results_dict("subtask_small_FIXED_80_BIGREPEATS"),
-                                r'$\theta = 0.95$': load_results_dict("subtask_small_FIXED_95_BIGREPEATS"),}
+        'exp4-2_fixed_theta': {r'$\theta = 0.5$':  load_results_dict("subtask_small_FIXED_50"),#_BIGREPEATS"),
+                                r'$\theta = 0.8$':  load_results_dict("subtask_small_FIXED_80"),#_BIGREPEATS"),
+                                r'$\theta = 0.95$': load_results_dict("subtask_small_FIXED_95"),#_BIGREPEATS"),}
+        }
     }
 
     paired_exps = {
-        'exp4-4_fixed_thetaA50': {r'$\theta_B = 0.5$':  load_results_dict("paired_small_FIXED_A50_B50_BIGREPEATS"),
-                                   r'$\theta_B = 0.47$': load_results_dict("paired_small_FIXED_A50_B47_BIGREPEATS"),
-                                   r'$\theta_B = 0.42$': load_results_dict("paired_small_FIXED_A50_B42_BIGREPEATS"),},
+        'exp4-4_fixed_thetaA50': {r'$\theta_B = 0.5$':  load_results_dict("paired_small_FIXED_A50_B50"),#_BIGREPEATS"),
+                                   r'$\theta_B = 0.47$': load_results_dict("paired_small_FIXED_A50_B47"),#_BIGREPEATS"),
+                                   r'$\theta_B = 0.42$': load_results_dict("paired_small_FIXED_A50_B42"),#_BIGREPEATS"),},
+        },
 
-        'exp4-4_fixed_thetaA80': {r'$\theta_B = 0.8$':  load_results_dict("paired_small_FIXED_A80_B80_BIGREPEATS"),
-                                   r'$\theta_B = 0.77$': load_results_dict("paired_small_FIXED_A80_B77_BIGREPEATS"),
-                                   r'$\theta_B = 0.72$': load_results_dict("paired_small_FIXED_A80_B72_BIGREPEATS"),},
+        'exp4-4_fixed_thetaA80': {r'$\theta_B = 0.8$':  load_results_dict("paired_small_FIXED_A80_B80"),#_BIGREPEATS"),
+                                   r'$\theta_B = 0.77$': load_results_dict("paired_small_FIXED_A80_B77"),#_BIGREPEATS"),
+                                   r'$\theta_B = 0.72$': load_results_dict("paired_small_FIXED_A80_B72"),#_BIGREPEATS"),},
+        },
 
-        'exp4-4_fixed_thetaA95': {r'$\theta_B = 0.95$': load_results_dict("paired_small_FIXED_A95_B95_BIGREPEATS"),
-                                   r'$\theta_B = 0.92$': load_results_dict("paired_small_FIXED_A95_B92_BIGREPEATS"),
-                                   r'$\theta_B = 0.87$': load_results_dict("paired_small_FIXED_A95_B87_BIGREPEATS"),}
+        'exp4-4_fixed_thetaA95': {r'$\theta_B = 0.95$': load_results_dict("paired_small_FIXED_A95_B95"),#_BIGREPEATS"),
+                                   r'$\theta_B = 0.92$': load_results_dict("paired_small_FIXED_A95_B92"),#_BIGREPEATS"),
+                                   r'$\theta_B = 0.87$': load_results_dict("paired_small_FIXED_A95_B87"),#_BIGREPEATS"),}
+        }
     }
 
     exps = {'basic': basic_exps, 'subtask': subtask_exps, 'paired': paired_exps}

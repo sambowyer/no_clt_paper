@@ -129,6 +129,10 @@ if __name__ == "__main__":
     parser.add_argument('--rho_max', type=float, default=1, help='Maximum value for rho in 2D Gaussian model')
     args = parser.parse_args()
 
+    import os 
+    os.makedirs('results', exist_ok=True)
+    os.makedirs('plots/pdfs', exist_ok=True)
+    os.makedirs('plots/pngs', exist_ok=True)
 
     print(f"\nStart time: {time.asctime()}")
     print(args)

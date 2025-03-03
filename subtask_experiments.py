@@ -115,6 +115,10 @@ if __name__ == "__main__":
     parser.add_argument('--fix_theta', type=float, default=None, help='Fix the value of theta')
     args = parser.parse_args()
 
+    import os 
+    os.makedirs('results', exist_ok=True)
+    os.makedirs('plots/pdfs', exist_ok=True)
+    os.makedirs('plots/pngs', exist_ok=True)
 
     print(f"\nStart time: {time.asctime()}")
     print(args)
