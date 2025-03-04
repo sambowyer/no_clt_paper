@@ -1,5 +1,7 @@
 # Code for "Position: Don’t use the CLT in LLM evals with fewer than a few hundred datapoints"
 
+Paper: https://arxiv.org/abs/2503.01747.
+
 Note that simple, user-friendly versions of the Bayesian eval methods used in this paper are available as a standalone package at https://github.com/sambowyer/bayes_evals.
 
 --------
