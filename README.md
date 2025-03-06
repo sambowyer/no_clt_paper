@@ -38,6 +38,18 @@ Then generate the plots (into `FINAL_PLOTS/`) as follows:
 - `python plot_main_experiments.py`: generates all other Figures for sections 3.1, 3.2 and 3.4 (and their corresponding appendix figures -- except for the fixed-theta appendix figures)
 - `python plot_fixed_theta_experiments.py`: generates the fixed-theta figures for the appendix ablation subsections corresponding to sections 3.1, 3.2 and 3.4 (Figures 17, 21, 33, 34, and 35)
 
-
 ### Sections 3.3, and 3.5 (independent model comparison and F1 scores)
 To obtain the Figures related to the independent model comparison and F1 score settings, use the scripts: `indep_model_comparison.py` and `f_score_comparison.py` respectively. These scripts will generate the plots in `FINAL_PLOTS/pdfs/` and save the results in `results/`.
+
+# Citation
+```bibtex
+@misc{bowyer2025positiondontuseclt,
+      title={Position: Don't use the CLT in LLM evals with fewer than a few hundred datapoints}, 
+      author={Sam Bowyer and Laurence Aitchison and Desi R. Ivanova},
+      year={2025},
+      eprint={2503.01747},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2503.01747}, 
+}
+```
