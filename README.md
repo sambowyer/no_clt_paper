@@ -45,13 +45,11 @@ To obtain the Figures related to the independent model comparison and F1 score s
 
 # Citation
 ```bibtex
-@misc{bowyer2025positiondontuseclt,
+@inproceedings{bowyer2025positiondontuseclt,
       title={Position: Don't use the CLT in LLM evals with fewer than a few hundred datapoints}, 
       author={Sam Bowyer and Laurence Aitchison and Desi R. Ivanova},
       year={2025},
-      eprint={2503.01747},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
+      booktitle={Forty-second International Conference on Machine Learning Position Paper Track},
       url={https://arxiv.org/abs/2503.01747}, 
 }
 ```
