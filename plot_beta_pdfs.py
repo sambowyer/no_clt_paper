@@ -63,8 +63,34 @@ ax3.grid(True, alpha=0.3)
 
 # Save the figure
 plt.tight_layout()
-plt.savefig('plots/pngs/beta_pdfs.png')
+plt.savefig('plots/pngs/beta_pdfs.png', dpi=300)
 plt.savefig('plots/pdfs/beta_pdfs.pdf')
-plt.savefig('PLOTS_FINAL/pngs/beta_pdfs.png')
+plt.savefig('PLOTS_FINAL/pngs/beta_pdfs.png', dpi=300)
 plt.savefig('PLOTS_FINAL/pdfs/beta_pdfs.pdf')
-plt.show()
+# plt.show()
+
+plt.close()
+
+#############
+
+# Plot 2*Beta(2,4)-1
+fig, (ax1) = plt.subplots(1, 1, figsize=(2.95, 2.87), sharey=True)
+
+a, b = 4,2
+x = np.linspace(-1, 1, 2000)
+y = beta.pdf((x+1)/2, a, b)
+ax1.plot(x, y, label='2*Beta(4,2)-1')
+ax1.fill_between(x, y, color='lightblue', alpha=0.5)
+#ax1.legend(loc='upper left')
+
+ax1.set_xlabel(r'$\rho$')
+ax1.set_ylabel('Density')
+
+plt.tight_layout()
+
+# save the figure
+plt.savefig('plots/pngs/rho_pdf.png', dpi=300)
+plt.savefig('plots/pdfs/rho_pdf.pdf')
+plt.savefig('PLOTS_FINAL/pngs/rho_pdf.png', dpi=300)
+plt.savefig('PLOTS_FINAL/pdfs/rho_pdf.pdf')
+# plt.show()
