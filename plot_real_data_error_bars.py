@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 plt.rcParams['text.usetex'] = True
 plt.style.use(['default'])
@@ -194,6 +195,7 @@ def create_error_bar_plot(plot_name, nice_llm_names, data_location, fig_size=(6.
     df = df.rename(columns={'index': 'llm'})
 
     # Save the dataframe
+    Path("results/real_world_error_bars").mkdir(parents=True, exist_ok=True)
     df.to_csv(f'results/real_world_error_bars/{plot_name}_df.csv', index=False)
 
     # Create figure and axes

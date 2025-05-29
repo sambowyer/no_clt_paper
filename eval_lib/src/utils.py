@@ -174,6 +174,7 @@ def generate_sample_collection_paired_gaussian_prior(n_vals, theta_vals_A, theta
         Random seed
     rho_min, rho_max: float
         Minimum and maximum possible correlation values
+        If None, then we sample rho from 2*Beta(4,2)-1
 
     Returns
     -------
@@ -208,7 +209,10 @@ def generate_sample_collection_paired_gaussian_prior(n_vals, theta_vals_A, theta
     assert mu.shape == (num_thetas, 2)
 
     # sample rho for each (n, theta_A, theta_B, num_repeat) setting
-    rho = np.random.uniform(low=rho_min, high=rho_max, size=(len(n_vals), num_thetas, repeats))
+    if rho_min is None and rho_max is None:
+        rho = 2*stats.beta.rvs(4,2, size=(len(n_vals), num_thetas, repeats)) - 1
+    else:
+        rho = np.random.uniform(low=rho_min, high=rho_max, size=(len(n_vals), num_thetas, repeats))
     assert rho.shape == (len(n_vals), num_thetas, repeats)
 
     # calculate the covariance matrix for each (n, theta_A, theta_B, num_repeat) setting
@@ -580,7 +584,10 @@ def get_intervals(n_vals, theta_vals, samples, alphas, method_fn, **kwargs):
 
 
     intervals = np.array([[method_fn(samples[n][theta_idx], alpha=alphas, **kwargs) for theta_idx in range(len(theta_vals))] for n in n_vals])
-    
+    if intervals.shape != (len(n_vals), len(theta_vals), len(alphas), repeats, 2):
+        # this can happen if alphas is a single value, in which case we need to expand it in the correct dimension
+        intervals = np.expand_dims(intervals, axis=2)
+
     assert intervals.shape == (len(n_vals), len(theta_vals), len(alphas), repeats, 2)
 
     # move the repeats dimension to the beginning and swap the theta and alpha dimensions 
@@ -625,6 +632,10 @@ def get_intervals_using_subtasks(n_vals, theta_vals, samples, alphas, method_fn,
     #     assert all(len(subtask_samples.shape) == 3 for subtask_samples in samples[n])
 
     intervals = np.array([[method_fn(samples[n][theta_idx], alpha=alphas, **kwargs) for theta_idx in range(len(theta_vals))] for n in n_vals])
+    
+    if intervals.shape != (len(n_vals), len(theta_vals), len(alphas), repeats, 2):
+        # this can happen if alphas is a single value, in which case we need to expand it in the correct dimension
+        intervals = np.expand_dims(intervals, axis=2)
 
     assert intervals.shape == (len(n_vals), len(theta_vals), len(alphas), repeats, 2)
 
@@ -667,7 +678,11 @@ def get_intervals_using_pairing(n_vals, num_theta_vals, samples_A, samples_B, al
     assert all(all([samples_B[n][theta_idx].shape[0] == repeats for theta_idx in range(num_theta_vals)]) for n in n_vals)
 
     intervals = np.array([[method_fn(samples_A[n][theta_idx], samples_B[n][theta_idx], alpha=alphas, **kwargs) for theta_idx in range(num_theta_vals)] for n in n_vals])
-    
+
+    if intervals.shape != (len(n_vals), num_theta_vals, len(alphas), repeats, 2):
+        # this can happen if alphas is a single value, in which case we need to expand it in the correct dimension
+        intervals = np.expand_dims(intervals, axis=2)
+
     assert intervals.shape == (len(n_vals), num_theta_vals, len(alphas), repeats, 2)
 
     # move the repeats dimension to the beginning and swap the theta and alpha dimensions 

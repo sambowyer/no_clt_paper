@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import time 
 
 import eval_lib as eval
 from eval_lib import (
@@ -19,7 +20,7 @@ from eval_lib import (
     bayes_subtask_credible_interval_IS_parallel,
 )
 
-def experiment_1_2(N_t, Ts, theta_vals, alphas, repeats=10, results_filename=None, seed=0, num_importance_samples=10_000, num_bootstrap_samples=10_000):
+def experiment_1_2(N_t, Ts, theta_vals, alphas, repeats=10, results_filename=None, seed=0, num_importance_samples=10_000, num_bootstrap_samples=10_000, verbose=True):
     n_vals = [N_t*t for t in Ts]
     n_per_tasks = [np.array([N_t]*t) for t in Ts]
 
@@ -28,33 +29,64 @@ def experiment_1_2(N_t, Ts, theta_vals, alphas, repeats=10, results_filename=Non
     # generate the data
     subtask_samples, subtask_samples_flat = generate_sample_subtask_collection(n_vals, theta_vals, n_per_tasks, repeats=repeats, seed=seed)
 
-    # calculate the intervals
-    print("Calculating intervals with bayes and freq...")
+    # Add dictionary to store method times
+    method_times = {}
+
+    if verbose: print("Calculating intervals with bayes...", end=' ')
+    start = time.time()
     bayes_intervals = get_intervals(n_vals, theta_vals, subtask_samples_flat, alphas, bayes_credible_interval)
+    method_times['bayes'] = time.time() - start
+    if verbose: print(f"(took {method_times['bayes']:.2f}s)")
+
+    if verbose: print("Calculating intervals with freq...", end=' ')
+    start = time.time()
     freq_intervals = get_intervals(n_vals, theta_vals, subtask_samples_flat, alphas, freq_confidence_interval)
+    method_times['freq'] = time.time() - start
+    if verbose: print(f"(took {method_times['freq']:.2f}s)")
 
-    print("Calculating intervals with wilson and clopper-pearson...")
+    if verbose: print("Calculating intervals with wilson...", end=' ')
+    start = time.time()
     wils_intervals = get_intervals(n_vals, theta_vals, subtask_samples_flat, alphas, freq_confidence_interval_better, method='wilson')
+    method_times['wils'] = time.time() - start
+    if verbose: print(f"(took {method_times['wils']:.2f}s)")
+
+    if verbose: print("Calculating intervals with wilson and clopper-pearson...", end=' ')
+    start = time.time()
     clop_intervals = get_intervals(n_vals, theta_vals, subtask_samples_flat, alphas, freq_confidence_interval_better, method='beta')
+    method_times['clop'] = time.time() - start
+    if verbose: print(f"(took {method_times['clop']:.2f}s)")
 
-    print("Calculating intervals with basic bootstrap...")
+    if verbose: print("Calculating intervals with basic bootstrap...", end=' ')
+    start = time.time()
     boot_intervals = get_intervals(n_vals, theta_vals, subtask_samples_flat, alphas, bootstrap_confidence_interval, K=num_bootstrap_samples)
+    method_times['boot'] = time.time() - start
+    if verbose: print(f"(took {method_times['boot']:.2f}s)")
 
-    print("Calculating intervals with clustered bootstrap...")
+    if verbose: print("Calculating intervals with clustered bootstrap...", end=' ')
+    start = time.time()
     boot_subtask_intervals = get_intervals_using_subtasks(n_vals, theta_vals, subtask_samples, alphas, bootstrap_subtask_confidence_interval, K=num_bootstrap_samples)
+    method_times['boot_subtask'] = time.time() - start
+    if verbose: print(f"(took {method_times['boot_subtask']:.2f}s)")
 
-    print("Calculating intervals with importance sampling subtask...")
+    if verbose: print("Calculating intervals with importance sampling subtask...", end=' ')
+    start = time.time()
     # non-parallel version
     IS_subtask_intervals = get_intervals_using_subtasks(n_vals, theta_vals, subtask_samples, alphas, bayes_subtask_credible_interval_IS, num_samples=num_importance_samples)
     
     # parallel version
     # IS_subtask_intervals = bayes_subtask_credible_interval_IS_parallel(subtask_samples, alphas, theta_vals, n_vals, num_samples=num_importance_samples)
+    method_times['IS_subtask'] = time.time() - start
+    if verbose: print(f"(took {method_times['IS_subtask']:.2f}s)")
 
 
-    print("Calculating intervals with (clustered) clt subtask...")
+    if verbose: print("Calculating intervals with (clustered) clt subtask...", end=' ')
+    start = time.time()
     clt_subtask_intervals = get_intervals_using_subtasks(n_vals, theta_vals, subtask_samples, alphas, clt_subtask_confidence_interval)
+    method_times['clt_subtask'] = time.time() - start
+    if verbose: print(f"(took {method_times['clt_subtask']:.2f}s)")
 
-    print("Interval calculation done!")
+
+    if verbose: print("Interval calculation done!")
     
     intervals = {'bayes': bayes_intervals, 'freq': freq_intervals,
                  'wils': wils_intervals, 'clop': clop_intervals, 
@@ -86,7 +118,10 @@ def experiment_1_2(N_t, Ts, theta_vals, alphas, repeats=10, results_filename=Non
         'Ts': Ts,
         'theta_vals': theta_vals,
         'alphas': alphas,
-        'repeats': repeats
+        'repeats': repeats,
+
+        # method times
+        'method_times': method_times
     }
 
     if results_filename is not None:
@@ -100,7 +135,6 @@ def experiment_1_2(N_t, Ts, theta_vals, alphas, repeats=10, results_filename=Non
 
 if __name__ == "__main__":
     import argparse
-    import time 
     parser = argparse.ArgumentParser(description='Run subtask error-bar experiments with specified hyperparameters.')
     parser.add_argument('--experiment_name', type=str, default='subtask_small', help='Experiment setup to use')
     parser.add_argument('--seed', type=int, default=0, help='Random seed to use')
@@ -115,10 +149,6 @@ if __name__ == "__main__":
     parser.add_argument('--fix_theta', type=float, default=None, help='Fix the value of theta')
     args = parser.parse_args()
 
-    import os 
-    os.makedirs('results', exist_ok=True)
-    os.makedirs('plots/pdfs', exist_ok=True)
-    os.makedirs('plots/pngs', exist_ok=True)
 
     print(f"\nStart time: {time.asctime()}")
     print(args)
