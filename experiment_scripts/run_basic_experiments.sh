@@ -3,6 +3,14 @@
 
 python basic_experiments.py --experiment_name basic_small
 
+####################################################################################################
+## Baseline Experiments with different seeds
+NUM_SEEDS=5
+
+for i in $(seq 1 $NUM_SEEDS); do
+    python basic_experiments.py --experiment_name basic_small --custom_name basic_small_SEED$i --seed $i
+done
+
 
 ####################################################################################################
 ## Mismatched Priors

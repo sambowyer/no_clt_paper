@@ -152,6 +152,7 @@ def importance_sampled_paired_credible_interval(data_A, data_B, alpha, num_sampl
         Maximum number of repeats to run in parallel
     rho_proposal_range: tuple
         Range of rho values to sample from (uniform proposal)
+        If (None, None), then we sample rho from 2*Beta(4,2)-1
 
     Returns
     -------
@@ -197,7 +198,13 @@ def importance_sampled_paired_credible_interval(data_A, data_B, alpha, num_sampl
         # sample a bunch of theta_As, theta_Bs and rhos
         theta_As = t.distributions.Beta(1, 1).sample((repeats, num_samples)).to(device)
         theta_Bs = t.distributions.Beta(1, 1).sample((repeats, num_samples)).to(device)
-        rhos     = t.distributions.Uniform(rho_proposal_range[0], rho_proposal_range[1]).sample((repeats, num_samples)).to(device)
+
+        if rho_proposal_range == (None, None):
+            rhos = 2*t.distributions.Beta(4,2).sample((repeats, num_samples)).to(device) - 1
+            # put clamp with 1e-20 on
+            rhos = t.clamp(rhos, -1 + 1e-20, 1 - 1e-20)
+        else:
+            rhos = t.distributions.Uniform(rho_proposal_range[0], rho_proposal_range[1]).sample((repeats, num_samples)).to(device)
 
         diff = theta_As - theta_Bs
 
@@ -227,8 +234,15 @@ def importance_sampled_paired_credible_interval(data_A, data_B, alpha, num_sampl
         log_likelihoods = S * t.log(theta_S) + T * t.log(theta_T) + U * t.log(theta_U) + V * t.log(theta_V)
         assert log_likelihoods.shape == (repeats, num_samples)
 
-        log_prior_prob = t.log(t.tensor(1.0, device=device) * t.tensor(1.0, device=device) * t.tensor(1/2, device=device))
-        log_proposal_prob = t.log(t.tensor(1.0, device=device) * t.tensor(1.0, device=device) * t.tensor(1/(rho_proposal_range[1]-rho_proposal_range[0]), device=device))
+        # calculate the log prior and proposal probabilities (usually these are the same)
+        if rho_proposal_range == (None, None):
+            # when rho is sampled from 2*Beta(4,2)-1
+            beta_dist = t.distributions.Beta(t.tensor(4.0, device=device), t.tensor(2.0, device=device))
+            log_prior_prob = beta_dist.log_prob((rhos + 1) / 2)
+            log_proposal_prob = beta_dist.log_prob((rhos + 1) / 2)
+        else:
+            log_prior_prob = t.log(t.tensor(1.0, device=device) * t.tensor(1.0, device=device) * t.tensor(1/2, device=device))
+            log_proposal_prob = t.log(t.tensor(1.0, device=device) * t.tensor(1.0, device=device) * t.tensor(1/(rho_proposal_range[1]-rho_proposal_range[0]), device=device))
 
         log_weights = log_likelihoods + log_prior_prob - log_proposal_prob
 
@@ -352,29 +366,3 @@ if __name__ == "__main__":
         print(results, results.shape)
 
         print()
-
-    ## check lambda_min and 
-    print()
-    print("Checking lambda_min and lambda_max:")
-    theta_As = np.array([0.5, 0.6, 0.8])
-    theta_Bs = np.array([0.5, 0.4, 0.9])
-
-    print("theta_As, theta_Bs:")
-    print(theta_As, theta_As.shape)
-    print(theta_Bs, theta_Bs.shape)
-
-    lambdas_min_ = lambda_min(theta_As, theta_Bs)
-    lambdas_max_ = lambda_max(theta_As, theta_Bs)
-
-    lambdas = np.random.uniform(low=lambdas_min_, high=lambdas_max_, size=(3,))
-    print("lambdas_min, lambdas_max:")
-    print(lambdas_min_, lambdas_min_.shape)
-    print(lambdas_max_, lambdas_max_.shape)
-
-    # the following should all be between 0 and 1
-    print("Inequality checks (should all be between 0 and 1):")
-    print("theta_Bs - lambdas*theta_As:")
-    print(theta_Bs - lambdas*theta_As)
-
-    print("theta_Bs + lambdas*(1-theta_As):")
-    print(theta_Bs + lambdas*(1-theta_As))

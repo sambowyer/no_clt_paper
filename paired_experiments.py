@@ -19,15 +19,15 @@ from eval_lib import (
     bayes_unpaired_credible_interval,
 )
 
-def experiment_1_3(n_vals, theta_vals_A, theta_vals_B, alphas, repeats=10, results_filename=None, seed=0, num_importance_samples=10_000, num_bootstrap_samples=10_000, simulation_method='gaussian', rho_min=-1, rho_max=1):
+def experiment_1_3(n_vals, theta_vals_A, theta_vals_B, alphas, repeats=10, results_filename=None, seed=0, num_importance_samples=10_000, num_bootstrap_samples=10_000, simulation_method='gaussian', rho_min=-1, rho_max=1, verbose=True):
     assert len(theta_vals_A) == len(theta_vals_B)
 
     # generate the data
+    rhos = None
     if simulation_method == 'gaussian':
-        samples_A, samples_B, rhos = generate_sample_collection_paired_gaussian_prior(n_vals, theta_vals_A, theta_vals_B, repeats=repeats, seed=seed, rho_min=args.rho_min, rho_max=args.rho_max)
+        samples_A, samples_B, rhos = generate_sample_collection_paired_gaussian_prior(n_vals, theta_vals_A, theta_vals_B, repeats=repeats, seed=seed, rho_min=rho_min, rho_max=rho_max)
     elif simulation_method == 'dirichlet':
-        # NOTE: DIRICHLET PRIOR OVERWRITES THETA_VALS
-        print("NOTE: Dirichlet prior overwrites theta_vals; fixed theta values won't work.")
+        if verbose: print("NOTE: Dirichlet prior overwrites theta_vals; fixed theta values won't work.")
         samples_A, samples_B, theta_vals_A, theta_vals_B = generate_sample_collection_paired_dirichlet_prior(n_vals, theta_vals_A, theta_vals_B, repeats=repeats, seed=seed)
         assert theta_vals_A.shape == theta_vals_B.shape
         assert len(theta_vals_A.shape) == 1
@@ -37,34 +37,40 @@ def experiment_1_3(n_vals, theta_vals_A, theta_vals_B, alphas, repeats=10, resul
         samples_A = generate_sample_collection(n_vals, theta_vals_A, repeats=repeats, seed=seed)
         samples_B = generate_sample_collection(n_vals, theta_vals_B, repeats=repeats, seed=seed+1)
 
-    # calculate the intervals
-    print("Calculating intervals with freq (unpaired CLT)...", end=' ')
+    # Add dictionary to store method times
+    method_times = {}
+
+    if verbose: print("Calculating intervals with freq (unpaired CLT)...", end=' ')
     start = time.time()
     freq_intervals = get_intervals_using_pairing(n_vals, len(theta_vals_A), samples_A, samples_B, alphas, clt_unpaired_confidence_interval)
-    print(f"(took {time.time() - start:.2f}s)")
+    method_times['freq'] = time.time() - start
+    if verbose: print(f"(took {method_times['freq']:.2f}s)")
 
-    print("Calculating intervals with paired CLT...", end=' ')
+    if verbose: print("Calculating intervals with paired CLT...", end=' ')
     start = time.time()
     clt_intervals = get_intervals_using_pairing(n_vals, len(theta_vals_A), samples_A, samples_B, alphas, clt_paired_confidence_interval)
-    print(f"(took {time.time() - start:.2f}s)")
+    method_times['clt_paired'] = time.time() - start
+    if verbose: print(f"(took {method_times['clt_paired']:.2f}s)")
 
-    print("Calculating intervals with bayes (IS)...", end=' ')
+    if verbose: print("Calculating intervals with bayes (2D Gaussian model)...", end=' ')
     start = time.time()
-    bayes_intervals = get_intervals_using_pairing(n_vals, len(theta_vals_A), samples_A, samples_B, alphas, importance_sampled_paired_credible_interval, num_samples=num_importance_samples)
-    print(f"(took {time.time() - start:.2f}s)")
+    bayes_intervals = get_intervals_using_pairing(n_vals, len(theta_vals_A), samples_A, samples_B, alphas, importance_sampled_paired_credible_interval, num_samples=num_importance_samples, rho_proposal_range=(rho_min, rho_max))
+    method_times['bayes_paired'] = time.time() - start
+    if verbose: print(f"(took {method_times['bayes_paired']:.2f}s)")
 
-    print("Calculating intervals with basic bootstrap...", end=' ')
+    if verbose: print("Calculating intervals with basic bootstrap...", end=' ')
     start = time.time()
     boot_intervals = get_intervals_using_pairing(n_vals, len(theta_vals_A), samples_A, samples_B, alphas, bootstrap_paired_confidence_interval, K=num_bootstrap_samples)
-    print(f"(took {time.time() - start:.2f}s)")
+    method_times['boot'] = time.time() - start
+    if verbose: print(f"(took {method_times['boot']:.2f}s)")
 
-    print("Calculating intervals with bayes (unpaired model)...", end=' ')
+    if verbose: print("Calculating intervals with bayes (unpaired model)...", end=' ')
     start = time.time()
     bayes_unpaired_intervals = get_intervals_using_pairing(n_vals, len(theta_vals_A), samples_A, samples_B, alphas, bayes_unpaired_credible_interval, num_samples=num_importance_samples)
-    print(f"(took {time.time() - start:.2f}s)")
+    method_times['bayes_unpaired'] = time.time() - start
+    if verbose: print(f"(took {method_times['bayes_unpaired']:.2f}s)")
 
-
-    print("Interval calculation done!")
+    if verbose: print("Interval calculation done!")
     
     intervals = {'freq': freq_intervals,
                  'clt_paired': clt_intervals,
@@ -96,8 +102,12 @@ def experiment_1_3(n_vals, theta_vals_A, theta_vals_B, alphas, repeats=10, resul
         'theta_vals_B': theta_vals_B,
         'alphas': alphas,
         'repeats': repeats,
+        'seed': seed,
 
         'rhos': rhos,
+
+        # method times
+        'method_times': method_times
     }
 
     if results_filename is not None:
@@ -111,7 +121,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Run subtask error-bar experiments with specified hyperparameters.')
     parser.add_argument('--experiment_name', type=str, default='paired_small', help='Experiment setup to use')
-    parser.add_argument('--seed', type=int, default=0, help='Random seed to use')
+    parser.add_argument('--seed', type=int, default=42, help='Random seed to use')
     parser.add_argument('--custom_name', type=str, default=None, help='Custom name to save results as')
     parser.add_argument('--num_repeats', type=int, default=200, help='Number of repeats to run')
     parser.add_argument('--num_alphas', type=int, default=100, help='Number of alphas to use')
@@ -127,12 +137,9 @@ if __name__ == "__main__":
     parser.add_argument('--fix_theta_B', type=float, default=None, help='Fix the value of theta_B')
     parser.add_argument('--rho_min', type=float, default=-1, help='Minimum value for rho in 2D Gaussian model')
     parser.add_argument('--rho_max', type=float, default=1, help='Maximum value for rho in 2D Gaussian model')
+    parser.add_argument('--positive_rho', action='store_true', help='Whether to sample rho from 2*Beta(4,2)-1')
     args = parser.parse_args()
 
-    import os 
-    os.makedirs('results', exist_ok=True)
-    os.makedirs('plots/pdfs', exist_ok=True)
-    os.makedirs('plots/pngs', exist_ok=True)
 
     print(f"\nStart time: {time.asctime()}")
     print(args)
@@ -154,6 +161,8 @@ if __name__ == "__main__":
         theta_vals_A = np.array([args.fix_theta_A])
         theta_vals_B = np.array([args.fix_theta_B])
     
+    rho_min = args.rho_min if not args.positive_rho else None
+    rho_max = args.rho_max if not args.positive_rho else None
 
     repeats = args.num_repeats
 
@@ -169,13 +178,13 @@ if __name__ == "__main__":
         custom_name = args.custom_name if args.custom_name is not None else args.experiment_name
 
         print(f"Running experiment {args.experiment_name} ({custom_name})...")
-        results = experiment_1_3(experiment_n_vals[args.experiment_name], theta_vals_A, theta_vals_B, alphas, repeats, results_filename=custom_name, seed=args.seed, num_importance_samples=args.num_importance_samples, num_bootstrap_samples=args.num_bootstrap_samples, simulation_method=args.simulation_method, rho_min=args.rho_min, rho_max=args.rho_max)
+        results = experiment_1_3(experiment_n_vals[args.experiment_name], theta_vals_A, theta_vals_B, alphas, repeats, results_filename=custom_name, seed=args.seed, num_importance_samples=args.num_importance_samples, num_bootstrap_samples=args.num_bootstrap_samples, simulation_method=args.simulation_method, rho_min=rho_min, rho_max=rho_max)
 
         from plot_main_experiments import cov_vs_alpha_plot, cov_vs_width_plot, double_plot
 
         # cov_vs_alpha_plot(results, plot_filename=f"coverage_vs_alpha_{custom_name}")
         # cov_vs_width_plot(results, plot_filename=f"coverage_vs_width_{custom_name}")
-        double_plot(results, plot_filename=f"combined_plot_{custom_name}", plot_type='paired')
+        double_plot(results, plot_filename=f"combined_plot_{custom_name}", plot_type='paired', restrict_bayes_methods=False)
 
         print(f"Finished experiment {args.experiment_name} ({custom_name}).\n")
 
