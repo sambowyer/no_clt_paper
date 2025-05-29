@@ -35,10 +35,12 @@ To run all the experiments neccessary for these sections, run the files in `expe
 These will by default create plots in `plots/` and save the results in `results/` (which are currently empty).
 
 Then generate the plots (into `FINAL_PLOTS/`) as follows:
-- `python plot_real_data_error_bars`: generates Figure 1 and Figure 8 (error bars on real langchain eval data)
-- `python plot_beta_pdfs.py`: generates Figure 13 (densities of beta distributions)
+- `python plot_real_data_error_bars`: generates error bars on real eval data (e.g. Figure 1)
+- `python plot_beta_pdfs.py`: plots densities of Beta distributions (and correlation $\rho$ of in the paired model from section 3.4)
 - `python plot_main_experiments.py`: generates all other Figures for sections 3.1, 3.2 and 3.4 (and their corresponding appendix figures -- except for the fixed-theta appendix figures)
-- `python plot_fixed_theta_experiments.py`: generates the fixed-theta figures for the appendix ablation subsections corresponding to sections 3.1, 3.2 and 3.4 (Figures 17, 21, 33, 34, and 35)
+- `python plot_fixed_theta_experiments.py`: generates the fixed-theta figures for the appendix ablation subsections corresponding to sections 3.1, 3.2 and 3.4 
+- `python plot_timing_experiments.py`: generates the timing plot (Figure 11)
+
 
 ### Sections 3.3, and 3.5 (independent model comparison and F1 scores)
 To obtain the Figures related to the independent model comparison and F1 score settings, use the scripts: `indep_model_comparison.py` and `f_score_comparison.py` respectively. These scripts will generate the plots in `FINAL_PLOTS/pdfs/` and save the results in `results/`.
