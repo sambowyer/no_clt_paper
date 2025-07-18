@@ -130,9 +130,6 @@ def bootstrap_confidence_interval(data, alpha, K=10_000, sample_length=None, max
         for i in range(num_repeats // max_parallel_repeats):
             interval[:, i*max_parallel_repeats:(i+1)*max_parallel_repeats, :] = bootstrap_confidence_interval(data[ i*max_parallel_repeats:(i+1)*max_parallel_repeats, :], alpha, K, sample_length, max_parallel_repeats)
 
-        if (interval[-1,...] == 0).all():
-            print(interval)
-            print("ooh!")
     else:
     
         indices = np.random.choice(n, (sample_length, K), replace=True)
